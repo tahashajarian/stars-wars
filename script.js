@@ -6,6 +6,7 @@ const scoreEl = document.querySelector("#scoreEl");
 const startGameEl = document.querySelector("#startGameEl");
 const modalEl = document.querySelector("#modalEl");
 const modalScoreEl = document.querySelector("#modalScoreEl");
+const fpsEl = document.querySelector("#fps");
 class Player {
   constructor(x, y, radius, color) {
     this.x = x;
@@ -19,6 +20,21 @@ class Player {
     c.fillStyle = this.color;
     c.fill();
   }
+}
+
+var lastCalledTime;
+var fps;
+
+function requestAnimFrame() {
+  if (!lastCalledTime) {
+    lastCalledTime = Date.now();
+    fps = 0;
+    return;
+  }
+  delta = (Date.now() - lastCalledTime) / 1000;
+  lastCalledTime = Date.now();
+  fps = 1 / delta;
+  return fps;
 }
 
 class Projectile {
@@ -133,7 +149,9 @@ function spawnEnemies() {
 
 let animatedId;
 let score = 0;
+let numberFps = 0;
 function animate() {
+  numberFps++;
   animatedId = requestAnimationFrame(animate);
   c.fillStyle = "rgba(0, 0, 0, 0.1)";
   c.fillRect(0, 0, canvas.width, canvas.height);
@@ -203,9 +221,30 @@ function animate() {
       particle.update();
     }
   });
+  const countedFps = parseInt(requestAnimFrame());
+  if (numberFps % 5 === 0) {
+    fpsEl.innerText = countedFps + " fps";
+  }
 }
 
-addEventListener("click", (e) => {
+let isDraging = false;
+addEventListener("mousedown", (e) => {
+  console.log("mouse down ");
+  isDraging = true;
+});
+
+addEventListener("mouseup", (e) => {
+  console.log("mouse up");
+  isDraging = false;
+});
+addEventListener("mousemove", (e) => {
+  console.log("mouse over", isDraging);
+  if (isDraging) {
+    if (numberFps % 5 === 0) fire(e);
+  }
+});
+
+const fire = (e) => {
   const angel = Math.atan2(
     e.clientY - canvas.height / 2,
     e.clientX - canvas.width / 2
@@ -222,7 +261,8 @@ addEventListener("click", (e) => {
     velocity
   );
   projectiles.push(projectile);
-});
+};
+
 startGameEl.addEventListener("click", () => {
   init();
   animate();
