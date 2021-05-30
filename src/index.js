@@ -6,6 +6,7 @@ import Projectile from './js/projectile'
 import Particle from './js/particle'
 
 import './styles/index.scss'
+import { convertEvent, convertEventName } from './js/convert-event'
 
 class GameManager {
   constructor() {
@@ -47,19 +48,20 @@ class GameManager {
       this.modalEl.style.display = 'none'
     }
 
-    window.addEventListener('mousedown', () => {
+    window.addEventListener(convertEventName('mousedown'), () => {
       this.isDraging = true
     })
 
-    window.addEventListener('mouseup', () => {
+    window.addEventListener(convertEventName('mouseup'), () => {
       this.isDraging = false
     })
 
-    window.addEventListener('mousemove', (e) => {
+    window.addEventListener(convertEventName('mousemove'), (e) => {
       if (this.isDraging) {
-        if (this.numberFps % this.fireSpeed === 0) this.fire(e)
+        if (this.numberFps % this.fireSpeed === 0) this.fire(convertEvent(e))
       }
     })
+
     this.highScoreEl.innerHTML = this.highScore
   }
 
@@ -228,6 +230,5 @@ class GameManager {
     return fps
   }
 }
-
 const gameManager = new GameManager()
 gameManager.startGame()
