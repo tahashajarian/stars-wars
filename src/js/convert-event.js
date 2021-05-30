@@ -20,9 +20,15 @@ export const convertEventName = (event) => {
 }
 
 /* eslint-disable indent */
-export const convertEvent = (event) => {
+export const getPositionOfEvent = (event) => {
   if (isMobile()) {
-    return event.touches[0]
+    return {
+      x: event.touches[0].clientX,
+      y: event.touches[0].clientY,
+    }
   }
-  return event
+  return {
+    x: event.clientX,
+    y: event.clientY,
+  }
 }

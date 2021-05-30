@@ -6,7 +6,7 @@ import Projectile from './js/projectile'
 import Particle from './js/particle'
 
 import './styles/index.scss'
-import { convertEvent, convertEventName } from './js/convert-event'
+import { getPositionOfEvent, convertEventName } from './js/convert-event'
 
 class GameManager {
   constructor() {
@@ -29,8 +29,9 @@ class GameManager {
     this.lastCalledTime = 0
     this.numberFps = 0
     this.enemiTimeCreate = 100
-    this.fireSpeed = 1
+    this.fireSpeed = 5
     this.highScore = localStorage.getItem('high-score') || 0
+    this.mousePosition = { x: 0, y: 0 }
   }
 
   startGame() {
@@ -48,8 +49,9 @@ class GameManager {
       this.modalEl.style.display = 'none'
     }
 
-    window.addEventListener(convertEventName('mousedown'), () => {
+    window.addEventListener(convertEventName('mousedown'), (e) => {
       this.isDraging = true
+      this.mousePosition = getPositionOfEvent(e)
     })
 
     window.addEventListener(convertEventName('mouseup'), () => {
@@ -57,12 +59,11 @@ class GameManager {
     })
 
     window.addEventListener(convertEventName('mousemove'), (e) => {
-      if (this.isDraging) {
-        if (this.numberFps % this.fireSpeed === 0) this.fire(convertEvent(e))
-      }
+      this.mousePosition = getPositionOfEvent(e)
     })
 
     this.highScoreEl.innerHTML = this.highScore
+    window.addEventListener('contextmenu', (e) => e.preventDefault())
   }
 
   init() {
@@ -195,12 +196,15 @@ class GameManager {
     if (this.numberFps % this.enemiTimeCreate === 0) {
       this.spawnEnemies()
     }
+    if (this.isDraging) {
+      if (this.numberFps % this.fireSpeed === 0) this.fire(this.mousePosition)
+    }
   }
 
-  fire(e) {
+  fire(mousePosition) {
     const angel = Math.atan2(
-      e.clientY - this.canvas.height / 2,
-      e.clientX - this.canvas.width / 2
+      mousePosition.y - this.canvas.height / 2,
+      mousePosition.x - this.canvas.width / 2
     )
     const velocity = {
       x: Math.cos(angel) * 5,
