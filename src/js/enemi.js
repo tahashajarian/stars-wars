@@ -15,9 +15,9 @@ export default class Enemi {
     this.ctx.fill()
   }
 
-  update() {
+  update(velocity) {
     this.draw()
-    this.x += this.velocity.x
-    this.y += this.velocity.y
+    this.x += velocity.x
+    this.y += velocity.y
   }
 }

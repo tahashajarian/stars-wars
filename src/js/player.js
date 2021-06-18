@@ -13,4 +13,10 @@ export default class Player {
     this.ctx.fillStyle = this.color
     this.ctx.fill()
   }
+
+  update(velocity) {
+    this.draw()
+    this.x += velocity.x
+    this.y += velocity.y
+  }
 }

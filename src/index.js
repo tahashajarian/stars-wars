@@ -7,6 +7,7 @@ import Particle from './js/particle'
 
 import './styles/index.scss'
 import { getPositionOfEvent, convertEventName } from './js/convert-event'
+import Controller from './js/controller'
 
 class GameManager {
   constructor() {
@@ -28,10 +29,11 @@ class GameManager {
     this.isDraging = false
     this.lastCalledTime = 0
     this.numberFps = 0
-    this.enemiTimeCreate = 100
+    this.enemiTimeCreate = 40
     this.fireSpeed = 5
     this.highScore = localStorage.getItem('high-score') || 0
     this.mousePosition = { x: 0, y: 0 }
+    this.playerSpeed = 3
   }
 
   startGame() {
@@ -64,6 +66,7 @@ class GameManager {
 
     this.highScoreEl.innerHTML = this.highScore
     window.addEventListener('contextmenu', (e) => e.preventDefault())
+    this.controller = new Controller()
   }
 
   init() {
@@ -97,10 +100,7 @@ class GameManager {
       x = Math.random() * this.canvas.width
       y = Math.random() < 0.5 ? 0 - radius : this.canvas.height + radius
     }
-    const angel = Math.atan2(
-      this.canvas.height / 2 - y,
-      this.canvas.width / 2 - x
-    )
+    const angel = Math.atan2(this.player.y - y, this.player.x - x)
     const velocity = {
       x: Math.cos(angel),
       y: Math.sin(angel),
@@ -129,7 +129,12 @@ class GameManager {
       }
     })
     this.enemies.forEach((enemi, index) => {
-      enemi.update()
+      const angel = Math.atan2(this.player.y - enemi.y, this.player.x - enemi.x)
+      const velocity = {
+        x: Math.cos(angel),
+        y: Math.sin(angel),
+      }
+      enemi.update(velocity)
       let dist = Math.hypot(enemi.x - this.player.x, enemi.y - this.player.y)
       if (dist - enemi.radius - this.player.radius < 0) {
         cancelAnimationFrame(this.animatedId)
@@ -164,7 +169,7 @@ class GameManager {
             }, 0)
           }
           this.scoreEl.innerHTML = this.score
-          for (let i = 0; i < enemi.radius * 2; i += 1) {
+          for (let i = 0; i < enemi.radius; i += 1) {
             const particle = new Particle({
               ctx: this.ctx,
               x: projectile.x,
@@ -177,7 +182,9 @@ class GameManager {
               },
               frication: 0.99,
             })
-            this.particles.push(particle)
+            if (this.particles.length < 100) {
+              this.particles.push(particle)
+            }
           }
         }
       })
@@ -199,12 +206,32 @@ class GameManager {
     if (this.isDraging) {
       if (this.numberFps % this.fireSpeed === 0) this.fire(this.mousePosition)
     }
+
+    // move player
+    const playerVelocity = { x: 0, y: 0 }
+    if (this.controller.up) playerVelocity.y -= this.playerSpeed
+    if (this.controller.right) playerVelocity.x += this.playerSpeed
+    if (this.controller.down) playerVelocity.y += this.playerSpeed
+    if (this.controller.left) playerVelocity.x -= this.playerSpeed
+    this.player.update(playerVelocity)
+    if (this.player.x < 0) {
+      this.player.x = this.canvas.width
+    }
+    if (this.player.x > this.canvas.width) {
+      this.player.x = 0
+    }
+    if (this.player.y < 0) {
+      this.player.y = this.canvas.height
+    }
+    if (this.player.y > this.canvas.height) {
+      this.player.y = 0
+    }
   }
 
   fire(mousePosition) {
     const angel = Math.atan2(
-      mousePosition.y - this.canvas.height / 2,
-      mousePosition.x - this.canvas.width / 2
+      mousePosition.y - this.player.y,
+      mousePosition.x - this.player.x
     )
     const velocity = {
       x: Math.cos(angel) * 5,
@@ -212,8 +239,8 @@ class GameManager {
     }
     const projectile = new Projectile({
       ctx: this.ctx,
-      x: this.canvas.width / 2,
-      y: this.canvas.height / 2,
+      x: this.player.x,
+      y: this.player.y,
       radius: 5,
       color: 'white',
       velocity,
