@@ -1,4 +1,4 @@
-import { isMobile } from "./detect-device"
+import { isMobile } from './detect-device'
 
 /* eslint-disable indent */
 export default class Controller {
@@ -40,10 +40,10 @@ export default class Controller {
       default:
         break
     }
-    
-    createHandle() {
 
-    }
     // eslint-disable-next-line no-console
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  createHandle() {}
 }
