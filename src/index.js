@@ -8,6 +8,7 @@ import Particle from './js/particle'
 import './styles/index.scss'
 import { getPositionOfEvent, convertEventName } from './js/convert-event'
 import Controller from './js/controller'
+import SoundManager from './js/sound-manager'
 
 class GameManager {
   constructor() {
@@ -30,7 +31,7 @@ class GameManager {
     this.lastCalledTime = 0
     this.numberFps = 0
     this.enemiTimeCreate = 40
-    this.fireSpeed = 5
+    this.fireSpeed = 10
     this.highScore = localStorage.getItem('high-score') || 0
     this.mousePosition = { x: 0, y: 0 }
     this.playerSpeed = 3
@@ -44,11 +45,12 @@ class GameManager {
       radius: 10,
       color: 'white',
     })
-
+    this.soundManager = new SoundManager()
     this.startGameEl.onclick = () => {
       this.init()
       this.animate()
       this.modalEl.style.display = 'none'
+      this.soundManager.playGround(true)
     }
 
     window.addEventListener(convertEventName('mousedown'), (e) => {
@@ -138,6 +140,8 @@ class GameManager {
       let dist = Math.hypot(enemi.x - this.player.x, enemi.y - this.player.y)
       if (dist - enemi.radius - this.player.radius < 0) {
         cancelAnimationFrame(this.animatedId)
+        this.soundManager.die()
+        this.soundManager.playGround(false)
         this.modalEl.style.display = 'flex'
         this.modalScoreEl.innerHTML = this.score
         if (this.score > this.highScore) {
@@ -158,11 +162,10 @@ class GameManager {
               })
             }, 0)
             this.score += 1
+            this.soundManager.damage()
           } else {
             this.score += 2
-            if (this.score > 1000) {
-              this.enemiTimeCreate = 50
-            }
+            this.soundManager.explode()
             setTimeout(() => {
               this.projectiles.splice(projectileIndex, 1)
               this.enemies.splice(index, 1)
@@ -214,6 +217,15 @@ class GameManager {
     if (this.controller.down) playerVelocity.y += this.playerSpeed
     if (this.controller.left) playerVelocity.x -= this.playerSpeed
     this.player.update(playerVelocity)
+    if (
+      this.controller.up ||
+      this.controller.right ||
+      this.controller.down ||
+      this.controller.left
+    ) {
+      if ((this.numberFps % this.playerSpeed) * 2 === 0)
+        this.soundManager.move()
+    }
     if (this.player.x < 0) {
       this.player.x = this.canvas.width
     }
@@ -246,6 +258,7 @@ class GameManager {
       velocity,
     })
     this.projectiles.push(projectile)
+    this.soundManager.fire()
   }
 
   requestAnimFrame() {
