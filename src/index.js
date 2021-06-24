@@ -76,7 +76,7 @@ class GameManager {
       ctx: this.ctx,
       x: this.canvas.width / 2,
       y: this.canvas.height / 2,
-      radius: 10,
+      radius: 50,
       color: 'white',
     })
     this.projectiles = []
@@ -114,7 +114,7 @@ class GameManager {
   animate() {
     this.numberFps += 1
     this.animatedId = requestAnimationFrame(() => this.animate())
-    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 1)'
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
     this.player.draw()
     this.projectiles.forEach((projectile, index) => {
@@ -251,8 +251,8 @@ class GameManager {
     }
     const projectile = new Projectile({
       ctx: this.ctx,
-      x: this.player.x,
-      y: this.player.y,
+      x: this.player.x + ((this.player.radius / 2) * velocity.x) / 2,
+      y: this.player.y + ((this.player.radius / 2) * velocity.y) / 2,
       radius: 5,
       color: 'white',
       velocity,
